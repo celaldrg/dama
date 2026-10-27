@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dama · Turkish draughts</title>
+  <meta name="description" content="Play Turkish draughts (Dama) in your browser: flying kings, mandatory maximum captures, an alpha-beta computer opponent with three levels, or two players on one device.">
+  <meta name="theme-color" content="#0f172a">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dama · Turkish draughts">
+  <meta property="og:description" content="Turkish draughts in the browser: flying kings, mandatory maximum captures and a computer opponent with three levels.">
+  <meta property="og:url" content="https://celaldrg.github.io/dama/">
+  <meta property="og:image" content="https://celaldrg.github.io/dama/docs/screenshot.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23e11d48'/><circle cx='32' cy='35' r='21' fill='%234c0519'/><circle cx='32' cy='32' r='21' fill='%23f8fafc'/><circle cx='32' cy='32' r='15' fill='none' stroke='%23cbd5e1' stroke-width='3'/><path d='M21 39 19 24 26 30 32 20 38 30 45 24 43 39Z' fill='%23f59e0b' stroke='%2392400e' stroke-width='2' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect width="64" height="64" rx="14" fill="#e11d48"/>
+        <circle cx="32" cy="35" r="21" fill="#4c0519"/>
+        <circle cx="32" cy="32" r="21" fill="#f8fafc"/>
+        <circle cx="32" cy="32" r="15" fill="none" stroke="#cbd5e1" stroke-width="3"/>
+        <path d="M21 39 19 24 26 30 32 20 38 30 45 24 43 39Z" fill="#f59e0b" stroke="#92400e" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div class="brand-text">
+        <h1>Dama</h1>
+        <p class="tagline" data-i18n="tagline">Turkish draughts</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="new-game-btn" class="btn btn-primary" type="button" data-i18n="newGame">New game</button>
+      <button id="lang-toggle" class="btn btn-lang" type="button" lang="tr" data-i18n="langToggle" data-i18n-label="langToggleLabel" data-i18n-title="langToggleTitle" aria-label="TR – Türkçe" title="Türkçe">TR</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section id="player-top" class="player player-top is-black">
+      <span class="player-piece" aria-hidden="true"></span>
+      <span class="player-text">
+        <span class="player-name">Computer</span>
+        <span class="player-sub">Black</span>
+      </span>
+      <span class="player-thinking" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="player-count">
+        <span class="count-total">16</span>
+        <span class="count-kings" hidden>
+          <svg class="crown-icon" viewBox="-24 -20 48 36" aria-hidden="true" focusable="false"><path d="M-19 12 L-22 -8 L-10 1 L0 -16 L10 1 L22 -8 L19 12 Z"/></svg>
+          <span class="count-kings-n">0</span>
+        </span>
+      </span>
+    </section>
+
+    <div class="board-wrap">
+      <svg id="board" class="board" tabindex="0" role="application" data-i18n-label="boardLabel" aria-label="Draughts board" aria-describedby="board-help"></svg>
+    </div>
+
+    <section id="player-bottom" class="player player-bottom is-white">
+      <span class="player-piece" aria-hidden="true"></span>
+      <span class="player-text">
+        <span class="player-name">You</span>
+        <span class="player-sub">White</span>
+      </span>
+      <span class="player-thinking" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="player-count">
+        <span class="count-total">16</span>
+        <span class="count-kings" hidden>
+          <svg class="crown-icon" viewBox="-24 -20 48 36" aria-hidden="true" focusable="false"><path d="M-19 12 L-22 -8 L-10 1 L0 -16 L10 1 L22 -8 L19 12 Z"/></svg>
+          <span class="count-kings-n">0</span>
+        </span>
+      </span>
+    </section>
+
+    <section class="panel">
+      <div id="status-card" class="status-card" data-state="playing">
+        <div class="status-head">
+          <p id="status-title" class="status-title" aria-live="polite">Your move</p>
+          <span id="move-counter" class="move-counter">Move 1</span>
+        </div>
+        <p id="status-detail" class="status-detail">Tap a piece, then a highlighted square.</p>
+      </div>
+      <div class="actions">
+        <button id="undo-btn" class="btn" type="button" disabled>
+          <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 5.5 3 10l4.5 4.5"/><path d="M3.5 10H14a5.5 5.5 0 0 1 0 11h-4"/></svg>
+          <span data-i18n="undo">Undo</span>
+        </button>
+        <button id="rules-btn" class="btn" type="button">
+          <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 6.5C10 5 6.5 4.3 3 5v14c3.5-.7 7 0 9 1.5 2-1.5 5.5-2.2 9-1.5V5c-3.5-.7-7 0-9 1.5Z"/><path d="M12 6.5v14"/></svg>
+          <span data-i18n="rules">Rules</span>
+        </button>
+        <button id="again-btn" class="btn btn-primary" type="button" hidden data-i18n="playAgain">Play again</button>
+      </div>
+      <p id="last-move" class="meta"></p>
+      <p id="mode-summary" class="meta">vs computer · Medium</p>
+      <p class="meta kbd-help" data-i18n="kbdHelp">Keyboard: Tab to the board, arrows + Enter to move, Esc cancels, U undoes, N starts a new game.</p>
+      <p id="board-help" class="visually-hidden" data-i18n="boardHelp">Arrow keys move the cursor, Enter or Space picks a piece and a square, Escape cancels.</p>
+      <p id="cursor-info" class="visually-hidden" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="https://github.com/celaldrg/dama">MIT · <span data-i18n="footerSource">Source on GitHub</span></a>
+  </footer>
+
+  <dialog id="new-game-dialog" aria-labelledby="new-game-title">
+    <form method="dialog" class="dialog-body">
+      <h2 id="new-game-title" data-i18n="newGame">New game</h2>
+      <fieldset>
+        <legend data-i18n="mode">Mode</legend>
+        <div class="segments">
+          <label><input type="radio" name="mode" value="ai"><span data-i18n="modeAi">vs computer</span></label>
+          <label><input type="radio" name="mode" value="two"><span data-i18n="modeTwo">2 players</span></label>
+        </div>
+      </fieldset>
+      <fieldset data-ai-only>
+        <legend data-i18n="level">Level</legend>
+        <div class="segments">
+          <label><input type="radio" name="level" value="easy"><span data-i18n="levelEasy">Easy</span></label>
+          <label><input type="radio" name="level" value="medium"><span data-i18n="levelMedium">Medium</span></label>
+          <label><input type="radio" name="level" value="hard"><span data-i18n="levelHard">Hard</span></label>
+        </div>
+      </fieldset>
+      <fieldset data-ai-only>
+        <legend data-i18n="yourColor">Your color</legend>
+        <div class="segments">
+          <label><input type="radio" name="color" value="1"><span data-i18n="white">White</span></label>
+          <label><input type="radio" name="color" value="-1"><span data-i18n="black">Black</span></label>
+        </div>
+      </fieldset>
+      <div class="dialog-actions">
+        <button class="btn" type="button" data-cancel data-i18n="cancel">Cancel</button>
+        <button class="btn btn-primary" type="submit" value="start" data-i18n="start">Start</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="rules-dialog" aria-labelledby="rules-title">
+    <div class="dialog-body">
+      <h2 id="rules-title" data-i18n="rulesTitle">Rules of Turkish draughts</h2>
+      <div class="rules" data-rules></div>
+      <form method="dialog" class="dialog-actions">
+        <button class="btn btn-primary" type="submit" data-i18n="close">Close</button>
+      </form>
+    </div>
+  </dialog>
+</body>
+</html>
