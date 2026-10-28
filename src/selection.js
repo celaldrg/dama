@@ -39,7 +39,10 @@ export function movesWithPrefix(moves, prefix) {
 /**
  * What a tap on `square` means while `prefix` is selected. A tap on the next
  * landing square of a route wins over a tap on the final square of another.
- * When every route the tap fits leads to the same position, the first one is played.
+ * When every route the tap fits leads to the same position, a route ending on
+ * the tapped square is played; a tapped next landing square on routes that go
+ * on along different hops extends the selection, so the recorded and animated
+ * hops are always the ones the player traced.
  * @param {Move[]} moves - legal moves of the side to move, one per route
  * @param {number[]} prefix - selected piece's square followed by chosen landing squares
  * @param {number} square - tapped square
@@ -52,8 +55,13 @@ export function resolveTap(moves, prefix, square) {
   const ending = through.filter((move) => move.to === square);
   const chosen = [next, ending, through].find((group) => group.length > 0);
   if (!chosen) return { type: 'none' };
-  if (chosen.every((move) => sameOutcome(move, chosen[0]))) return { type: 'play', move: chosen[0] };
   const common = commonPrefix(chosen.map((move) => move.path));
+  if (chosen.every((move) => sameOutcome(move, chosen[0]))) {
+    const endsHere = chosen.find((move) => move.to === square);
+    if (endsHere) return { type: 'play', move: endsHere };
+    const tracing = chosen === next && common.length < chosen[0].path.length;
+    return tracing ? { type: 'extend', prefix: common } : { type: 'play', move: chosen[0] };
+  }
   return common.length > k ? { type: 'extend', prefix: common } : { type: 'ambiguous' };
 }
 

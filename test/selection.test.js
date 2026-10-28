@@ -73,6 +73,18 @@ const EQUIVALENT_ROUTES = parseBoard(`
   W . . . . . . .
 `);
 
+// The king on a1 takes b1 (landing on c1), c3 and c6; after c1 it may land on c4 or c5 before c7.
+const SAME_END_DIFFERENT_HOPS = parseBoard(`
+  . . W . . . . .
+  . . . . . . . .
+  . . b . . . . .
+  . . . . . . . .
+  . . . . . . . .
+  . . b . . . . .
+  . . . . . . . .
+  W b . w . . . .
+`);
+
 describe('picking a piece', () => {
   test('only pieces with a legal move can be picked', () => {
     assert.deepEqual(names(movableSquares(generateMoves(initialBoard(), WHITE))), [
@@ -140,6 +152,15 @@ describe('resolving taps', () => {
     assert.equal(tap(moves, squares('a1'), 'a6'), 'none', 'a6 holds a piece to capture');
   });
 
+  test('a traced route is recorded hop by hop even when other routes give the same position', () => {
+    const moves = generateRoutes(SAME_END_DIFFERENT_HOPS, WHITE);
+    assert.deepEqual(moves.map(moveToString).sort(), ['a1xc1xc4xc7', 'a1xc1xc5xc7']);
+    assert.equal(tap(moves, squares('a1'), 'c1'), 'extend a1-c1', 'the player still picks the next hop');
+    assert.equal(tap(moves, squares('a1', 'c1'), 'c5'), 'play a1xc1xc5xc7');
+    assert.equal(tap(moves, squares('a1', 'c1'), 'c4'), 'play a1xc1xc4xc7');
+    assert.equal(tap(moves, squares('a1'), 'c7'), 'play a1xc1xc4xc7', 'the final square alone is enough');
+  });
+
   test('every legal route can be entered by tapping its landing squares in order', () => {
     const positions = [
       [initialBoard(), WHITE],
@@ -147,6 +168,7 @@ describe('resolving taps', () => {
       [TWO_ROUTES_TO_D7, WHITE],
       [FLYING_KING, WHITE],
       [EQUIVALENT_ROUTES, WHITE],
+      [SAME_END_DIFFERENT_HOPS, WHITE],
     ];
     for (const [board, side] of positions) {
       const moves = generateRoutes(board, side);

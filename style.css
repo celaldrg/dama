@@ -218,10 +218,14 @@ body {
   max-width: var(--board-size);
 }
 
-@media (min-width: 900px), (orientation: landscape) and (min-width: 560px) {
+/*
+ * The side panel needs 640px of width: a board of --board-min (40px squares)
+ * plus the panel, gap and gutters. Short screens keep that floor and scroll.
+ */
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
   .layout {
-    --board-size: min(calc(100vh - 150px), calc(100vw - 380px), 760px);
-    --board-size: min(calc(100dvh - 150px), calc(100vw - 380px), 760px);
+    --board-size: max(var(--board-min), min(calc(100vh - 150px), calc(100vw - 380px), 760px));
+    --board-size: max(var(--board-min), min(calc(100dvh - 150px), calc(100vw - 380px), 760px));
     grid-template-columns: var(--board-size) minmax(250px, 320px);
     grid-template-rows: auto auto 1fr;
     grid-template-areas:
@@ -242,8 +246,8 @@ body {
   }
 }
 
-/* Short landscape screens with the side panel; narrower ones keep the one-column sizes above. */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
+/* Short landscape screens with the side panel; narrower ones keep the one-column layout. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
   .topbar {
     padding-top: 6px;
     padding-bottom: 6px;
@@ -254,8 +258,8 @@ body {
   }
 
   .layout {
-    --board-size: min(calc(100vh - 76px), calc(100vw - 300px), 760px);
-    --board-size: min(calc(100dvh - 76px), calc(100vw - 300px), 760px);
+    --board-size: max(var(--board-min), min(calc(100vh - 76px), calc(100vw - 300px), 760px));
+    --board-size: max(var(--board-min), min(calc(100dvh - 76px), calc(100vw - 300px), 760px));
     padding-top: 8px;
     column-gap: 16px;
   }
